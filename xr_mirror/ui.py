@@ -15,7 +15,7 @@ from PySide6.QtGui import QAction, QImage, QKeySequence, QPainter, QPixmap
 from PySide6.QtWidgets import (QApplication, QComboBox, QLabel, QLineEdit, QMainWindow,
                                QMessageBox, QPushButton, QSizePolicy, QToolBar, QWidget)
 
-from . import SCRCPY_VERSION, __version__
+from . import __version__, find_server_jar
 from .adb import STATE_HINTS, Adb, AdbError, Device, find_adb
 from .presets import PRESETS, Crop, parse_rect
 from .recorder import Recorder
@@ -43,7 +43,7 @@ class Settings:
     fullscreen: bool = False
     always_on_top: bool = False
     adb_path: str | None = None
-    server_jar: Path = field(default_factory=lambda: ROOT / f"scrcpy-server-v{SCRCPY_VERSION}")
+    server_jar: Path = field(default_factory=find_server_jar)
     out_dir: Path = field(default_factory=lambda: Path.home() / "Videos" / "xr-mirror")
     display_id: int = 0
     keyframe_interval: int = 5

@@ -38,7 +38,8 @@ curl -fsSL https://raw.githubusercontent.com/jhon-rjf/xr-mirror/main/install.sh 
 1. 저장소를 `~/xr-mirror`에 내려받습니다 (git이 없으면 zip으로).
 2. Python 3.10 이상을 찾고, 없으면 설치합니다 (Windows: winget 또는 python.org 설치기 무인 설치, macOS: Homebrew 또는 python.org pkg, Linux: apt/dnf/pacman).
 3. 가상환경을 만들고 av, numpy, PySide6를 설치합니다.
-4. platform-tools(adb)와 scrcpy-server v5.0.1을 내려받아 SHA256을 검증합니다.
+4. platform-tools(adb)를 내려받습니다. scrcpy-server v5.0.1은 저장소 `vendor/`에 동봉되어 있어 다운로드가 없습니다
+   (Google 서버가 막힌 망에서는 이 저장소의 GitHub Release 예비 경로로 adb를 받습니다).
 5. 프로그램을 실행합니다. 이후에는 `run.bat`(Windows) 또는 `./install.sh`로 바로 실행합니다.
 
 저장소를 이미 받아 둔 경우에는 폴더 안의 `install.bat`을 더블클릭하거나 `./install.sh`를 실행해도 같습니다.
@@ -104,7 +105,13 @@ run.bat         Windows 일상 실행기 (venv, 의존성, 다운로드 확인 �
 
 ## 문제 해결
 
-- **설치 중 `[xr-mirror] 오류`가 뜸**: 같은 폴더의 `install.log`에 전체 로그가 남습니다. 오류 줄 앞뒤를 보내 주세요.
+- **`install.ps1`을 더블클릭하면 메모장만 열림**: 정상입니다. Windows는 .ps1을 더블클릭으로 실행하지 않습니다.
+  `install.bat`(처음) 또는 `run.bat`(이후)을 더블클릭하세요.
+- **설치 중 `[xr-mirror] ERROR`가 뜸**: 바로 위에 Python이 찍은 원인(예외 종류, URL, 원인 추정, 수동 설치 방법)이 있습니다.
+  전체 로그는 같은 폴더의 `install.log`에 남습니다. 로그를 전달하려면 PowerShell에서
+  `Get-Content $HOME\xr-mirror\install.log -Tail 40 | Set-Clipboard` 후 붙여넣기 하면 됩니다.
+- **adb/scrcpy-server setup failed**: 대부분 네트워크(방화벽, 프록시, DNS)입니다. 출력의 "수동 설치" 안내대로
+  브라우저로 zip을 받아 `platform-tools\adb.exe` 위치에 풀어 두면 다음 실행부터 다운로드를 건너뜁니다.
 - **콘솔 한글이 깨짐**: 설치기가 콘솔을 UTF-8(chcp 65001)로 바꾸므로 최신 버전에서는 나지 않습니다.
   `install.ps1`과 `.bat`은 인코딩 문제를 피하려고 영문만 쓰고, 한글 메시지는 Python 프로그램이 출력합니다.
 - **`python.exe`를 찾을 수 없다고 나옴**: Python이 없어 가상환경이 안 만들어진 상태입니다. `install.bat`을 실행하면

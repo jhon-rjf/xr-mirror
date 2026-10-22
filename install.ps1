@@ -155,8 +155,8 @@ if (-not (Test-Path $marker) -or (Get-Item requirements.txt).LastWriteTime -gt (
 }
 
 # ---------------------------------------------------------------- 4) adb, server
-$haveAdb = (Test-Path "platform-tools\adb.exe") -or [bool](Get-Command adb -ErrorAction SilentlyContinue)
-if ($haveAdb) { & $VPy setup_env.py --no-adb 2>&1 | Out-Host } else { & $VPy setup_env.py 2>&1 | Out-Host }
+# downloads only what is missing; the vendored scrcpy-server in vendor/ needs no download
+& $VPy setup_env.py 2>&1 | Out-Host
 if ($LASTEXITCODE -ne 0) { Die "adb/scrcpy-server setup failed. See the log above." }
 
 # ---------------------------------------------------------------- 5) run

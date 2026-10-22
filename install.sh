@@ -138,12 +138,8 @@ if [ ! -f .venv/.deps-ok ] || [ requirements.txt -nt .venv/.deps-ok ]; then
 fi
 
 # ---------------------------------------------------------------- 4) adb, 서버
-if [ "$PLATFORM" = windows ]; then ADB="platform-tools/adb.exe"; else ADB="platform-tools/adb"; fi
-if [ ! -f "$ADB" ] && ! command -v adb >/dev/null; then
-  "$VPY" setup_env.py
-else
-  "$VPY" setup_env.py --no-adb
-fi
+# 없는 것만 내려받는다 (vendor/의 scrcpy-server 동봉본은 다운로드 불필요)
+"$VPY" setup_env.py
 
 # ---------------------------------------------------------------- 5) 실행
 log "준비 완료. 프로그램을 실행합니다. (다음부터는 ./install.sh 또는 run.bat)"

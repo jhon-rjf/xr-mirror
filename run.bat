@@ -22,10 +22,8 @@ if not exist "%~dp0.venv\.deps-ok" (
     echo ok> "%~dp0.venv\.deps-ok"
 )
 
-if not exist "%~dp0platform-tools\adb.exe" (
-    where adb >nul 2>&1 || "%VPY%" "%~dp0setup_env.py" || (pause & exit /b 1)
-)
-if not exist "%~dp0scrcpy-server-v5.0.1" "%VPY%" "%~dp0setup_env.py" --no-adb || (pause & exit /b 1)
+rem adb and scrcpy-server: downloads only what is missing (vendor copy of the server is used if present)
+"%VPY%" "%~dp0setup_env.py" || (pause & exit /b 1)
 
 "%VPY%" -m xr_mirror %*
 if errorlevel 1 pause

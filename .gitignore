@@ -1,6 +1,6 @@
 .venv/
 platform-tools/
-scrcpy-server-v*
+/scrcpy-server-v*
 __pycache__/
 *.pyc
 install.log
