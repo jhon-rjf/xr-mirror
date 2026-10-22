@@ -101,10 +101,12 @@ class Adb:
         return cp
 
     def popen(self, *args: str, serial: str | None = None,
-              stdin=subprocess.DEVNULL) -> subprocess.Popen:
+              stdin=subprocess.DEVNULL, stderr=subprocess.STDOUT) -> subprocess.Popen:
+        """stderr는 기본으로 stdout에 합친다. 따로 PIPE로 두면 읽어 주지 않는 동안
+        파이프 버퍼가 차서 자식 프로세스(scrcpy 서버)가 write에서 멈춘다."""
         cmd = self._base(serial) + list(args)
         return subprocess.Popen(cmd, stdin=stdin, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, bufsize=0,
+                                stderr=stderr, bufsize=0,
                                 creationflags=_NO_WINDOW)
 
     # ---- 고수준 ---------------------------------------------------------

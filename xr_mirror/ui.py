@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
-from PySide6.QtCore import QObject, Qt, QThread, QTimer, Signal, Slot
+from PySide6.QtCore import QObject, QRect, Qt, QThread, QTimer, Signal, Slot
 from PySide6.QtGui import QAction, QImage, QKeySequence, QPainter, QPixmap
 from PySide6.QtWidgets import (QApplication, QComboBox, QLabel, QLineEdit, QMainWindow,
                                QMessageBox, QPushButton, QSizePolicy, QToolBar, QWidget)
@@ -85,9 +85,8 @@ class VideoWidget(QWidget):
         h, w = rgb.shape[:2]
         if not rgb.flags["C_CONTIGUOUS"]:
             rgb = np.ascontiguousarray(rgb)
-        # QImage는 버퍼를 참조하므로 복사본을 유지해야 한다
-        self._buf = rgb
-        self._img = QImage(rgb.data, w, h, w * 3, QImage.Format_RGB888)
+        # copy()로 Qt가 버퍼를 소유하게 해 numpy 배열 수명과 분리한다 (1080p 기준 약 6MB memcpy)
+        self._img = QImage(rgb.data, w, h, w * 3, QImage.Format_RGB888).copy()
         self.update()
 
     def clear(self, message: str = "연결 대기") -> None:
@@ -105,10 +104,9 @@ class VideoWidget(QWidget):
         target = self._img.size().scaled(self.size(), Qt.KeepAspectRatio)
         x = (self.width() - target.width()) // 2
         y = (self.height() - target.height()) // 2
-        p.setRenderHint(QPainter.SmoothPixmapTransform, target.width() < self._img.width())
-        p.drawImage(x, y, self._img.scaled(target, Qt.IgnoreAspectRatio,
-                                           Qt.SmoothTransformation if target.width() < self._img.width()
-                                           else Qt.FastTransformation))
+        downscale = target.width() < self._img.width()
+        p.setRenderHint(QPainter.SmoothPixmapTransform, downscale)
+        p.drawImage(QRect(x, y, target.width(), target.height()), self._img)
 
 
 class MainWindow(QMainWindow):
@@ -131,6 +129,7 @@ class MainWindow(QMainWindow):
         self._fps_count = 0
         self._fps = 0.0
         self._fps_t = time.time()
+        self._last_frame_t = 0.0
         self._bytes_t = (time.time(), 0)
         self._bitrate = 0.0
 
@@ -169,6 +168,13 @@ class MainWindow(QMainWindow):
         tb = QToolBar("제어")
         tb.setMovable(False)
         self.addToolBar(tb)
+
+        self.btn_connect = QPushButton("연결")
+        self.btn_connect.setStyleSheet("font-weight:bold; padding:4px 18px;")
+        self.btn_connect.setMinimumWidth(96)
+        self.btn_connect.clicked.connect(self.toggle_connect)
+        tb.addWidget(self.btn_connect)
+        tb.addSeparator()
 
         tb.addWidget(QLabel(" 기기 "))
         self.cb_device = QComboBox()
@@ -218,11 +224,6 @@ class MainWindow(QMainWindow):
         if self.s.crop:
             self._select_crop_from_text(self.s.crop)
 
-        tb.addSeparator()
-        self.btn_connect = QPushButton("연결")
-        self.btn_connect.setStyleSheet("font-weight:bold; padding:4px 14px;")
-        self.btn_connect.clicked.connect(self.toggle_connect)
-        tb.addWidget(self.btn_connect)
 
     def _build_actions(self) -> None:
         tb = QToolBar("보기")
@@ -354,7 +355,10 @@ class MainWindow(QMainWindow):
         self.btn_connect.setText("연결 해제")
         self.video.clear("연결 중...")
         self._fps_count = 0
+        self._last_frame_t = 0.0
         self._bytes_t = (time.time(), 0)
+        log.info("연결 시작: backend=%s serial=%s max_size=%s bit_rate=%s crop=%s",
+                 backend, serial, max_size, bit_rate, self.current_crop.name)
         self.source.start()
 
     def disconnect_device(self, message: str = "연결 대기") -> None:
@@ -364,8 +368,11 @@ class MainWindow(QMainWindow):
         src = self.source
         self.source = None
         if src:
+            log.info("연결 해제: %s (frames=%s)", message, src.decoder.frames_decoded if src.decoder else 0)
             src.stop()
             src.join(timeout=3)
+            if src.is_alive():
+                log.warning("소스 스레드가 3초 안에 끝나지 않음")
         self.video.clear(message)
         self.btn_connect.setText("연결")
         self._set_controls_enabled(True)
@@ -407,6 +414,7 @@ class MainWindow(QMainWindow):
             rgb = rgb[y0:y1, x0:x1]
         self.video.set_frame(rgb)
         self._fps_count += 1
+        self._last_frame_t = time.time()
 
     @Slot()
     def _update_stats(self) -> None:
@@ -437,6 +445,12 @@ class MainWindow(QMainWindow):
                 parts.append("REC 키프레임 대기")
             else:
                 parts.append(f"REC {self.recorder.bytes_written / 1e6:.1f} MB")
+        # 화면 변화가 없으면 scrcpy 서버는 프레임을 보내지 않으므로 정상일 수 있다. 상태만 표시.
+        if self._last_frame_t and now - self._last_frame_t > 5:
+            idle = int(now - self._last_frame_t)
+            parts.append(f"새 프레임 없음 {idle}초")
+            if idle % 30 == 0:
+                log.warning("%d초째 새 프레임 없음 (소스 alive=%s)", idle, src.is_alive())
         self.lbl_stats.setText("  |  ".join(parts) + "  ")
 
     # ------------------------------------------------------------- status

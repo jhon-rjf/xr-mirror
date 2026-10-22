@@ -4,3 +4,4 @@ platform-tools/
 __pycache__/
 *.pyc
 install.log
+logs/

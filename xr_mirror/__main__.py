@@ -39,8 +39,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("-v", "--verbose", action="store_true")
     a = p.parse_args(argv)
 
-    logging.basicConfig(level=logging.DEBUG if a.verbose else logging.INFO,
-                        format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    from . import __version__
+    from .logsetup import setup_logging
+    setup_logging(a.verbose)
+    logging.getLogger(__name__).info("xr-mirror %s 시작, 인자: %s", __version__, argv if argv is not None else sys.argv[1:])
 
     s = Settings(serial=a.serial, backend=a.backend, max_size=a.max_size, bit_rate=a.bitrate,
                  max_fps=a.max_fps, crop=a.crop, fullscreen=a.fullscreen,

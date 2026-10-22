@@ -140,6 +140,7 @@ class ScrcpySource(FrameSource):
         # 서버가 listen할 때까지 연결을 재시도 (더미 바이트 1개가 오면 성공)
         self._sock = self._connect(self._port, timeout=8.0)
         self.on_status("스트림 수신 중")
+        log.info("scrcpy 연결 완료: port=%s max_size=%s bit_rate=%s", self._port, self.max_size, self.bit_rate)
         self.started_at = time.time()
         sock = self._sock
 
@@ -186,11 +187,7 @@ class ScrcpySource(FrameSource):
             if line:
                 self.server_log.append(line)
                 log.info("[server] %s", line)
-        if proc.stderr:
-            err = proc.stderr.read().decode("utf-8", "replace").strip()
-            if err:
-                self.server_log.extend(err.splitlines())
-                log.warning("[server:stderr] %s", err)
+        log.info("[server] 출력 종료 (rc=%s)", proc.poll())
 
     def _close_io(self) -> None:
         sock, self._sock = self._sock, None
@@ -241,7 +238,8 @@ class ScreenrecordSource(FrameSource):
                 if size_arg:
                     args.append(f"--size={size_arg}")
                 args.append("-")
-                self._proc = self.adb.popen(*args, serial=self.serial)
+                # stdout은 H.264 바이너리라 stderr를 섞으면 안 된다. 실패는 즉시 종료 여부로 판별.
+                self._proc = self.adb.popen(*args, serial=self.serial, stderr=subprocess.PIPE)
                 assert self._proc.stdout is not None
                 t0 = time.time()
                 self._pump(self._proc.stdout.read)

@@ -163,3 +163,11 @@ if ($LASTEXITCODE -ne 0) { Die "adb/scrcpy-server setup failed. See the log abov
 Log "Ready. Starting the program. (Next time: double-click run.bat)"
 try { Stop-Transcript | Out-Null } catch {}
 & $VPy -m xr_mirror @args
+$rc = $LASTEXITCODE
+if ($rc -ne 0) {
+    Write-Host ""
+    Write-Host "[xr-mirror] exited with code $rc" -ForegroundColor Red
+    Write-Host "  logs: $(Join-Path (Get-Location) 'logs\xr-mirror.log') and logs\crash.log" -ForegroundColor DarkGray
+    Read-Host "Press Enter to close" | Out-Null
+}
+exit $rc

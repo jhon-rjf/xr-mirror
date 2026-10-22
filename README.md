@@ -116,6 +116,8 @@ run.bat         Windows 일상 실행기 (venv, 의존성, 다운로드 확인 �
   `install.ps1`과 `.bat`은 인코딩 문제를 피하려고 영문만 쓰고, 한글 메시지는 Python 프로그램이 출력합니다.
 - **`python.exe`를 찾을 수 없다고 나옴**: Python이 없어 가상환경이 안 만들어진 상태입니다. `install.bat`을 실행하면
   Python 3.12부터 자동으로 설치합니다. Microsoft Store의 python 자리표시자는 무시합니다.
+- **실행 중 멈추거나 창이 사라짐**: `logs\xr-mirror.log`(일반 로그)와 `logs\crash.log`(네이티브 크래시 스택)를 보세요.
+  run.bat은 비정상 종료 시 콘솔을 닫지 않고 종료 코드와 로그 위치를 보여 줍니다. 두 파일의 끝부분을 보내 주시면 됩니다.
 - **기기 목록에 `[unauthorized]`**: 헤드셋 안의 USB 디버깅 허용 창을 수락하세요.
 - **`no permissions` / 목록에 없음**: 드라이버 문제이거나 케이블이 데이터 전송을 지원하지 않습니다.
   장치 관리자에서 "Android Composite ADB Interface"가 보여야 합니다.

@@ -13,7 +13,9 @@ rem First run (or broken venv): hand everything to the installer, which also ins
 if not exist "%VPY%" (
     echo [xr-mirror] No virtual environment yet. Running installer...
     powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0install.ps1" %*
-    exit /b %errorlevel%
+    set "RC=%errorlevel%"
+    if not "%RC%"=="0" pause
+    exit /b %RC%
 )
 
 if not exist "%~dp0.venv\.deps-ok" (
@@ -26,4 +28,11 @@ rem adb and scrcpy-server: downloads only what is missing (vendor copy of the se
 "%VPY%" "%~dp0setup_env.py" || (pause & exit /b 1)
 
 "%VPY%" -m xr_mirror %*
-if errorlevel 1 pause
+set "RC=%errorlevel%"
+if not "%RC%"=="0" (
+    echo.
+    echo [xr-mirror] exited with code %RC%
+    echo [xr-mirror] logs: "%~dp0logs\xr-mirror.log"  and  "%~dp0logs\crash.log"
+    pause
+)
+exit /b %RC%
