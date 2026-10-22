@@ -154,6 +154,7 @@ class MainWindow(QMainWindow):
         self._scan_timer = QTimer(self)
         self._scan_timer.timeout.connect(self.refresh_devices)
         self._scanner: DeviceScanner | None = None
+        self._closing = False
 
         self._init_adb()
         if settings.fullscreen:
@@ -370,7 +371,7 @@ class MainWindow(QMainWindow):
         self._set_controls_enabled(True)
         self._set_status(message)
         self.lbl_stats.setText("")
-        if self.adb:
+        if self.adb and not self._closing:
             self._scan_timer.start(3000)
             self.refresh_devices()
 
@@ -534,7 +535,11 @@ class MainWindow(QMainWindow):
         self.show()
 
     def closeEvent(self, ev) -> None:  # noqa: N802
+        self._closing = True
+        self._scan_timer.stop()
         self.disconnect_device()
+        if self._scanner and self._scanner.isRunning():
+            self._scanner.wait(3000)      # adb devices 스캔 스레드가 살아 있는 채로 종료 방지
         super().closeEvent(ev)
 
 
