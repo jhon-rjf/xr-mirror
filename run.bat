@@ -1,26 +1,31 @@
 @echo off
+rem xr-mirror daily launcher. ASCII only: cmd.exe reads this file in the OEM code page,
+rem so Korean text here would be garbled. Korean output comes from the Python program.
 setlocal
 cd /d "%~dp0"
+chcp 65001 >nul
+set PYTHONUTF8=1
+set PYTHONIOENCODING=utf-8
 
-if not exist ".venv\Scripts\python.exe" (
-    echo [xr-mirror] 가상환경 생성 중...
-    py -3 -m venv .venv 2>nul || python -m venv .venv
-    if errorlevel 1 (
-        echo Python 3.10 이상이 필요합니다. https://www.python.org/downloads/ 에서 설치 후 다시 실행하세요.
-        pause & exit /b 1
-    )
-)
-set PY=.venv\Scripts\python.exe
+set "VPY=%~dp0.venv\Scripts\python.exe"
 
-if not exist ".venv\.deps-ok" (
-    echo [xr-mirror] 의존성 설치 중...
-    "%PY%" -m pip install --upgrade pip >nul
-    "%PY%" -m pip install --retries 10 --timeout 60 -r requirements.txt || (pause & exit /b 1)
-    echo ok> ".venv\.deps-ok"
+rem First run (or broken venv): hand everything to the installer, which also installs Python.
+if not exist "%VPY%" (
+    echo [xr-mirror] No virtual environment yet. Running installer...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0install.ps1" %*
+    exit /b %errorlevel%
 )
 
-if not exist "platform-tools\adb.exe" "%PY%" setup_env.py
-if not exist "scrcpy-server-v5.0.1" "%PY%" setup_env.py --no-adb
+if not exist "%~dp0.venv\.deps-ok" (
+    echo [xr-mirror] Installing dependencies...
+    "%VPY%" -m pip install --retries 10 --timeout 60 -r "%~dp0requirements.txt" || (pause & exit /b 1)
+    echo ok> "%~dp0.venv\.deps-ok"
+)
 
-"%PY%" -m xr_mirror %*
+if not exist "%~dp0platform-tools\adb.exe" (
+    where adb >nul 2>&1 || "%VPY%" "%~dp0setup_env.py" || (pause & exit /b 1)
+)
+if not exist "%~dp0scrcpy-server-v5.0.1" "%VPY%" "%~dp0setup_env.py" --no-adb || (pause & exit /b 1)
+
+"%VPY%" -m xr_mirror %*
 if errorlevel 1 pause

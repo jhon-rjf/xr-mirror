@@ -1,4 +1,6 @@
 @echo off
-rem 더블클릭용: install.ps1을 실행 정책 제한 없이 실행 (Python 설치부터 실행까지 전부)
+rem Double-click installer: runs install.ps1 (installs Python if needed, then everything else).
+rem ASCII only: cmd.exe reads batch files in the OEM code page.
+chcp 65001 >nul
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0install.ps1" %*
 if errorlevel 1 pause

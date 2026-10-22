@@ -14,6 +14,7 @@ REPO="jhon-rjf/xr-mirror"
 PY_VER="3.12.10"
 PY_MIN="(3, 10)"
 INSTALL_DIR="${XR_MIRROR_DIR:-$HOME/xr-mirror}"
+export PYTHONUTF8=1 PYTHONIOENCODING=utf-8   # Windows Git Bash에서 한글 출력 깨짐 방지
 
 log()  { printf '\033[1;36m[xr-mirror]\033[0m %s\n' "$*"; }
 die()  { printf '\033[1;31m[xr-mirror] 오류:\033[0m %s\n' "$*" >&2; exit 1; }

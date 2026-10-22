@@ -3,3 +3,4 @@ platform-tools/
 scrcpy-server-v*
 __pycache__/
 *.pyc
+install.log

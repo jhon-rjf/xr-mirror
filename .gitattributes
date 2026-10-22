@@ -1,0 +1,6 @@
+# Windows 스크립트는 CRLF, 나머지는 LF로 고정 (core.autocrlf 설정과 무관하게 동일 체크아웃)
+* text=auto eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.sh text eol=lf
+*.py text eol=lf
