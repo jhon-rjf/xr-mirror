@@ -106,7 +106,7 @@ run.bat         Windows 일상 실행기 (venv, 의존성, 다운로드 확인 �
 
 - **설치 중 `[xr-mirror] 오류`가 뜸**: 같은 폴더의 `install.log`에 전체 로그가 남습니다. 오류 줄 앞뒤를 보내 주세요.
 - **콘솔 한글이 깨짐**: 설치기가 콘솔을 UTF-8(chcp 65001)로 바꾸므로 최신 버전에서는 나지 않습니다.
-  `install.ps1`은 UTF-8 BOM으로 저장되어야 하며(메모장으로 다른 인코딩으로 저장하면 깨짐), `.bat` 파일은 영문만 씁니다.
+  `install.ps1`과 `.bat`은 인코딩 문제를 피하려고 영문만 쓰고, 한글 메시지는 Python 프로그램이 출력합니다.
 - **`python.exe`를 찾을 수 없다고 나옴**: Python이 없어 가상환경이 안 만들어진 상태입니다. `install.bat`을 실행하면
   Python 3.12부터 자동으로 설치합니다. Microsoft Store의 python 자리표시자는 무시합니다.
 - **기기 목록에 `[unauthorized]`**: 헤드셋 안의 USB 디버깅 허용 창을 수락하세요.
