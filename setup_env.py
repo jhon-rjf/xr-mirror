@@ -69,15 +69,17 @@ def download(url: str) -> bytes:
                     total = int(r.headers.get("Content-Length") or 0)
                     buf = io.BytesIO()
                     got = 0
+                    next_mark = 0
                     while True:
                         chunk = r.read(1 << 16)
                         if not chunk:
                             break
                         buf.write(chunk)
                         got += len(chunk)
-                        if total:
-                            print(f"\r  {got / 1e6:6.1f} / {total / 1e6:.1f} MB", end="", flush=True)
-                    print(flush=True)
+                        # 파이프/로그로 갈 때 줄이 넘치지 않도록 10% 단위로만 출력
+                        if total and got * 10 // total >= next_mark:
+                            print(f"  {got / 1e6:6.1f} / {total / 1e6:.1f} MB", flush=True)
+                            next_mark = got * 10 // total + 1
                 if total and got < total:
                     raise SetupError(f"다운로드가 중간에 끊겼습니다 ({got}/{total} bytes)")
                 return buf.getvalue()
