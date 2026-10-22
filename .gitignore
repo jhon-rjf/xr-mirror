@@ -1,0 +1,5 @@
+.venv/
+platform-tools/
+scrcpy-server-v*
+__pycache__/
+*.pyc
